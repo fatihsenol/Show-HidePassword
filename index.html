@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Show - Hide Password</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.co/gsap@3/dist/gsap.min.js"></script>
+    <script src="https://assets.codepen.io/16327/MorphSVGPlugin3.min.js"></script>
+</head>
+<body>
+    <div class="password-field">
+    <input type="password" placeholder="Password">
+    <input class="clear" type="text" placeholder="Password">
+    <button>
+        <svg viewBox="0 0 21 21">
+            <circle class="eye" cx="10.5" cy="10.5" r="2.25" />
+            <path class="top" d="M2 10.5C2 10.5 6.43686 5.5 10.5 5.5C14.5631 5.5 19 10.5 19 10.5" />
+            <path class="bottom" d="M2 10.5C2 10.5 6.43686 15.5 10.5 15.5C14.5631 15.5 19 10.5 19 10.5" />
+            <g class="lashes">
+                <path d="M10.5 15.5V18" />
+                <path d="M14.5 14.5L15.25 17" />
+                <path d="M6.5 14.5L5.75 17" />
+                <path d="M3.5 12.5L2 15" />
+                <path d="M17.5 12.5L19 15" />
+            </g>
+        </svg>
+    </button>
+</div>
+</body>
+<script>
+  const { to, set, timeline, registerPlugin } = gsap
+
+  registerPlugin(MorphSVGPlugin)
+
+  document.querySelectorAll('.password-field').forEach(field => {
+      let input = field.querySelectorAll('input'),
+          button = field.querySelector('button'),
+          time = timeline({
+              paused: true
+          }).to(field.querySelector('svg .top'), {
+              morphSVG: 'M2 10.5C2 10.5 6.43686 15.5 10.5 15.5C14.5631 15.5 19 10.5 19 10.5',
+              duration: .2
+          }).to(field, {
+              keyframes: [{
+                  '--eye-s': 0,
+                  '--eye-background': 1,
+                  duration: .2
+              }, {
+                  '--eye-offset': '0px',
+                  duration: .15
+              }]
+          }, 0)
+      button.addEventListener('click', e => {
+          if(field.classList.contains('show')) {
+              field.classList.remove('show')
+              time.reverse(0)
+              return
+          }
+          field.classList.add('show')
+          time.play(0)
+      })
+      field.addEventListener('pointermove', e => {
+          const rect = button.getBoundingClientRect()
+          const fullWidth = rect.width
+          const halfWidth = fullWidth / 2
+          const fullHeight = rect.height
+          const halfHeight = fullHeight / 2
+          let x = e.clientX - rect.left - halfWidth,
+              y = e.clientY - rect.top - halfHeight
+
+          field.style.setProperty('--eye-x', (x < -halfWidth ? -halfWidth : x > fullWidth ? fullWidth : x) / 15 + 'px')
+          field.style.setProperty('--eye-y', (y < -halfHeight ? -halfHeight : y > fullHeight ? fullHeight : y) / 25 + 'px')
+      })
+      field.addEventListener('pointerleave', e => {
+          field.style.setProperty('--eye-x', '0px')
+          field.style.setProperty('--eye-y', '0px')
+      })
+      input.forEach(single => single.addEventListener('input', e => input.forEach(i => i.value = e.target.value)))
+  })
+</script>
+</html>
